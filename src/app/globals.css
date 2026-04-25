@@ -1,26 +1,448 @@
+/* globals.css — Cyberpunk / AR aesthetic for the gesture sphere app */
+
 @import "tailwindcss";
 
+/* ─── CSS VARIABLES ──────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --neon-green: #39ff14;
+  --neon-green-dim: rgba(57, 255, 20, 0.4);
+  --neon-green-glow: rgba(57, 255, 20, 0.15);
+  --neon-blue: #00d4ff;
+  --bg-dark: #000000;
+  --card-bg: rgba(0, 0, 0, 0.85);
+  --card-border: rgba(57, 255, 20, 0.3);
+  --text-primary: #e0e0e0;
+  --text-secondary: #888888;
+  --font-mono: var(--font-jetbrains-mono, "JetBrains Mono"), "Fira Code", "SF Mono", "Consolas", monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─── RESET & BASE ───────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── TRACKING ROOT (full viewport container) ────────────────────────────── */
+
+.tracking-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-dark);
+}
+
+/* ─── HIDDEN VIDEO ───────────────────────────────────────────────────────── */
+
+.hidden-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── TRACKING CANVAS ────────────────────────────────────────────────────── */
+
+.tracking-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  /* Mirror the webcam so it feels like looking in a mirror */
+  transform: scaleX(-1);
+  opacity: 0.2;
+  transition: opacity 0.45s ease;
+}
+
+/* ─── 3D SCENE CONTAINER ─────────────────────────────────────────────────── */
+
+.scene-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0.2;
+  transition: opacity 0.45s ease;
+}
+
+.tracking-ready .tracking-canvas,
+.tracking-ready .scene-container canvas {
+  opacity: 1;
+}
+
+/* ─── SCANLINE OVERLAY ───────────────────────────────────────────────────── */
+
+.scanline-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 4px
+  );
+  /* Subtle animated scan bar */
+  animation: scanbar 8s linear infinite;
+}
+
+.scanline-overlay::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--neon-green-dim) 50%,
+    transparent 100%
+  );
+  animation: scanline-move 4s ease-in-out infinite;
+  opacity: 0.4;
+}
+
+@keyframes scanline-move {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes scanbar {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 100px;
+  }
+}
+
+/* ─── HUD: FPS COUNTER ──────────────────────────────────────────────────── */
+
+.hud-fps {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 30;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neon-green);
+  text-shadow: 0 0 8px var(--neon-green-dim);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  letter-spacing: 1px;
+}
+
+/* ─── HUD: TRACKING STATUS ──────────────────────────────────────────────── */
+
+.hud-status {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: background 0.3s ease;
+}
+
+.status-dot.active {
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green), 0 0 16px var(--neon-green-dim);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--neon-green), 0 0 16px var(--neon-green-dim);
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 4px var(--neon-green), 0 0 8px var(--neon-green-dim);
+  }
+}
+
+.status-text {
+  color: var(--neon-green);
+}
+
+/* ─── HUD: HAND COUNT & GESTURES ─────────────────────────────────────────── */
+
+.hud-hands {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--neon-green);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+}
+
+.hands-label {
+  text-shadow: 0 0 6px var(--neon-green-dim);
+}
+
+.gesture-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--neon-green-glow);
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  animation: badge-pulse 1s ease-in-out infinite;
+}
+
+.gesture-badge.pinch {
+  border-color: var(--neon-blue);
+  color: var(--neon-blue);
+  background: rgba(0, 212, 255, 0.15);
+}
+
+.hud-color {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  color: var(--neon-green);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+}
+
+@keyframes badge-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ─── LOADING OVERLAY ────────────────────────────────────────────────────── */
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(57, 255, 20, 0.15);
+  border-top-color: var(--neon-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--neon-green);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px var(--neon-green-dim);
+  margin-bottom: 8px;
+}
+
+.loading-subtext {
+  font-size: 12px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+/* ─── ERROR OVERLAY ──────────────────────────────────────────────────────── */
+
+.error-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+}
+
+.error-card {
+  max-width: 460px;
+  padding: 40px;
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  border-radius: 16px;
+  text-align: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 40px rgba(255, 80, 80, 0.1);
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  filter: saturate(2);
+}
+
+.error-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff5050;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.error-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.error-steps {
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.error-steps p {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.error-steps ol {
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.error-retry {
+  padding: 10px 32px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--bg-dark);
+  background: var(--neon-green);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.error-retry:hover {
+  box-shadow: 0 0 20px var(--neon-green-dim), 0 0 40px var(--neon-green-glow);
+  transform: translateY(-1px);
+}
+
+.error-retry:active {
+  transform: translateY(0);
+}
+
+/* ─── VIGNETTE BORDER ────────────────────────────────────────────────────── */
+
+.tracking-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
 }
