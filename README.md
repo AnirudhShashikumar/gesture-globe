@@ -74,7 +74,7 @@ Start the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. Accept camera permissions.
+Open https://gestureglobe.vercel.app in your browser. Accept camera permissions.
 
 ### Production Build
 
