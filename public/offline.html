@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline — Gesture Globe</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --neon-blue:   #00d4ff;
+      --neon-purple: #7c3aed;
+      --bg:          #0d0d1a;
+      --text:        #e2e8f0;
+      --muted:       #64748b;
+    }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, "JetBrains Mono", "Fira Code", monospace;
+      text-align: center;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: gridScroll 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes gridScroll {
+      to { background-position: 48px 48px; }
+    }
+
+    .globe {
+      width: 120px;
+      height: 120px;
+      border: 2px solid var(--neon-blue);
+      border-radius: 50%;
+      position: relative;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.3), inset 0 0 40px rgba(0, 212, 255, 0.1);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    /* Latitude lines */
+    .globe::before, .globe::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+    .globe::before { transform: scaleY(0.4); }
+    .globe::after  { transform: scaleY(0.75); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 30px rgba(0,212,255,0.3), inset 0 0 30px rgba(0,212,255,0.1); }
+      50%       { box-shadow: 0 0 60px rgba(0,212,255,0.5), inset 0 0 60px rgba(0,212,255,0.2); }
+    }
+
+    h1 {
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--neon-blue);
+      text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      max-width: 36ch;
+      margin-bottom: 2rem;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: blink 1.2s step-end infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    button {
+      padding: 0.75rem 2rem;
+      background: transparent;
+      border: 1px solid var(--neon-blue);
+      color: var(--neon-blue);
+      font-family: inherit;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="globe"></div>
+
+  <h1>Signal Lost</h1>
+  <p>You appear to be offline. Reconnect to the network to resume gesture tracking.</p>
+
+  <div class="status">
+    <span class="dot"></span>
+    No network connection
+  </div>
+
+  <button onclick="location.reload()">Retry Connection</button>
+
+  <script>
+    // Auto-reload when connectivity is restored
+    window.addEventListener("online", () => location.reload());
+  </script>
+</body>
+</html>
